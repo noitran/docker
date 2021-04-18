@@ -1,0 +1,43 @@
+name: Github Docker CI
+
+on:
+  push:
+    branches: master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        docker_version: ['20.10', '20.10-dind']
+    steps:
+      - uses: actions/checkout@v2
+      - uses: e1himself/goss-installation-action@v1.0.3
+      - name: Set Environment Variables
+        env:
+          DOCKER_VERSION: ${{ matrix.docker_version }}
+          DOCKER_IMAGE: ${{ matrix.docker_version }}-latest
+          DOCKER_TEMPLATE: ${{ matrix.docker_version }}
+          IMAGE_TAG: noitran/docker:${{ matrix.docker_version }}
+          IMAGE_TAG_LATEST: noitran/docker:${{ matrix.docker_version }}-latest
+        run: |
+          echo "docker_version=${DOCKER_VERSION}" >> $GITHUB_ENV
+          echo "docker_image=${DOCKER_IMAGE}" >> $GITHUB_ENV
+          echo "docker_template=${DOCKER_TEMPLATE}" >> $GITHUB_ENV
+          echo "image_tag_latest=${IMAGE_TAG_LATEST}" >> $GITHUB_ENV
+      - name: Build the Docker image
+        run: |
+          sed -e "s/%%DOCKER_IMAGE%%/${{ env.docker_image }}/g" ${{ env.docker_template }}/Dockerfile.template > ${{ env.docker_template }}/Dockerfile
+          sed -i "s/%%DOCKER_TEMPLATE%%/${{ env.docker_template }}/g" ${{ env.docker_template }}/Dockerfile
+          docker build -f ${{ env.docker_template }}/Dockerfile . -t ${{ env.image_tag_latest }}
+          docker image ls
+      - name: Test image which was built
+        if: success()
+        run: |
+          GOSS_FILES_PATH=${{ env.docker_template }} dgoss run -t ${{ env.image_tag_latest }}
+      - name: Push image to Docker hub
+        if: success()
+        run: |
+          echo ${{ secrets.DOCKER_HUB_PASSWORD }} | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
+          docker push ${{ env.image_tag_latest }}
+          docker logout
