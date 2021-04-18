@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        docker_version: ['19.03', '19.03-dind', '20.10', '20.10-dind']
+        docker_version: ['20.10', '20.10-dind']
     steps:
       - uses: actions/checkout@v2
       - uses: e1himself/goss-installation-action@v1.0.3
