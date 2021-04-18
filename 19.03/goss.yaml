@@ -1,0 +1,5 @@
+command:
+  "bash --help":
+    stdout:
+      - "GNU bash, version 5.1"
+    exit-status: 0
