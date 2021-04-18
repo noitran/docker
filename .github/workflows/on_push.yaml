@@ -16,19 +16,18 @@ jobs:
       - name: Set Environment Variables
         env:
           DOCKER_VERSION: ${{ matrix.docker_version }}
-          DOCKER_IMAGE: ${{ matrix.docker_version }}-latest
+          DOCKER_FROM: ${{ matrix.docker_version }}
           DOCKER_TEMPLATE: ${{ matrix.docker_version }}
           IMAGE_TAG: noitran/docker:${{ matrix.docker_version }}
           IMAGE_TAG_LATEST: noitran/docker:${{ matrix.docker_version }}-latest
         run: |
           echo "docker_version=${DOCKER_VERSION}" >> $GITHUB_ENV
-          echo "docker_image=${DOCKER_IMAGE}" >> $GITHUB_ENV
+          echo "docker_image=${DOCKER_FROM}" >> $GITHUB_ENV
           echo "docker_template=${DOCKER_TEMPLATE}" >> $GITHUB_ENV
           echo "image_tag_latest=${IMAGE_TAG_LATEST}" >> $GITHUB_ENV
       - name: Build the Docker image
         run: |
           sed -e "s/%%DOCKER_IMAGE%%/${{ env.docker_image }}/g" ${{ env.docker_template }}/Dockerfile.template > ${{ env.docker_template }}/Dockerfile
-          sed -i "s/%%DOCKER_TEMPLATE%%/${{ env.docker_template }}/g" ${{ env.docker_template }}/Dockerfile
           docker build -f ${{ env.docker_template }}/Dockerfile . -t ${{ env.image_tag_latest }}
           docker image ls
       - name: Test image which was built
