@@ -1,6 +1,0 @@
-FROM docker:%%DOCKER_IMAGE%%
-
-RUN set -eux \
-    && apk add --update --no-cache bash
-
-SHELL ["/bin/bash", "-c"]
